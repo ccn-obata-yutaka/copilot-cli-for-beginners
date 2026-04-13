@@ -1,5 +1,7 @@
 import json
+from contextlib import contextmanager
 from dataclasses import dataclass, asdict
+from pathlib import Path
 from typing import List, Optional
 
 DATA_FILE = "data.json"
@@ -18,21 +20,35 @@ class BookCollection:
         self.books: List[Book] = []
         self.load_books()
 
+    @contextmanager
+    def _open_data_file(self, mode: str):
+        with Path(DATA_FILE).open(mode, encoding="utf-8") as file:
+            yield file
+
     def load_books(self):
         """Load books from the JSON file if it exists."""
         try:
-            with open(DATA_FILE, "r") as f:
+            with self._open_data_file("r") as f:
                 data = json.load(f)
-                self.books = [Book(**b) for b in data]
+                self.books = [book for book in (self._load_book_entry(b) for b in data) if book is not None]
         except FileNotFoundError:
             self.books = []
         except json.JSONDecodeError:
             print("Warning: data.json is corrupted. Starting with empty collection.")
             self.books = []
 
+    def _load_book_entry(self, raw_book) -> Optional[Book]:
+        if not isinstance(raw_book, dict):
+            return None
+
+        try:
+            return Book(**raw_book)
+        except TypeError:
+            return None
+
     def save_books(self):
         """Save the current book collection to JSON."""
-        with open(DATA_FILE, "w") as f:
+        with self._open_data_file("w") as f:
             json.dump([asdict(b) for b in self.books], f, indent=2)
 
     def add_book(self, title: str, author: str, year: int) -> Book:
@@ -42,7 +58,11 @@ class BookCollection:
         return book
 
     def list_books(self) -> List[Book]:
-        return self.books
+        return [book for book in self.books if book is not None]
+
+    def get_unread_books(self) -> List[Book]:
+        """Return all books that are not marked as read."""
+        return [book for book in self.books if book is not None and not book.read]
 
     def find_book_by_title(self, title: str) -> Optional[Book]:
         for book in self.books:
@@ -69,4 +89,4 @@ class BookCollection:
 
     def find_by_author(self, author: str) -> List[Book]:
         """Find all books by a given author."""
-        return [b for b in self.books if b.author.lower() == author.lower()]
+        return [b for b in self.books if b is not None and b.author.lower() == author.lower()]
