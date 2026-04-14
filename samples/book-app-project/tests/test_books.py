@@ -105,8 +105,14 @@ def test_add_book(collection):
     "title, author, year",
     [
         ("", "George Orwell", 1949),
+        ("   ", "George Orwell", 1949),
         ("1984", "", 1949),
+        ("1984", "   ", 1949),
         ("1984", "George Orwell", -1),
+        ("1984", "George Orwell", True),
+        ("1984", "George Orwell", False),
+        ("1984", "George Orwell", "1949"),
+        ("1984", "George Orwell", 1949.0),
     ],
 )
 def test_add_book_rejects_invalid_input(collection, title, author, year):
