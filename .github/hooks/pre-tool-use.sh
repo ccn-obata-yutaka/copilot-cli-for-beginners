@@ -10,7 +10,17 @@ import re
 import subprocess
 import sys
 
-data = json.loads(os.environ["HOOK_INPUT"])
+raw_input = os.environ.get("HOOK_INPUT", "")
+if not raw_input:
+    sys.exit(0)
+
+try:
+    data = json.loads(raw_input)
+except json.JSONDecodeError:
+    sys.exit(0)
+
+if not isinstance(data, dict):
+    sys.exit(0)
 tool_name = data.get("toolName") or data.get("tool_name") or ""
 tool_args = data.get("toolArgs") or data.get("tool_input") or {}
 
