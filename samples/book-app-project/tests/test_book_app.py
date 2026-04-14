@@ -54,8 +54,41 @@ def test_main_dispatches_unread_command(monkeypatch):
     assert called == [True]
 
 
+def test_handle_search_year_shows_matching_books(tmp_path, monkeypatch, capsys):
+    data_file = tmp_path / "data.json"
+    data_file.write_text("[]")
+    monkeypatch.setattr(books, "DATA_FILE", str(data_file))
+
+    collection = BookCollection()
+    collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
+    collection.add_book("Dune", "Frank Herbert", 1965)
+    collection.add_book("Neuromancer", "William Gibson", 1984)
+    monkeypatch.setattr(book_app, "collection", collection)
+    monkeypatch.setattr("builtins.input", lambda prompt="": "1937" if "Start" in prompt else "1965")
+
+    book_app.handle_search_year()
+
+    output = capsys.readouterr().out
+    assert "The Hobbit" in output and "Dune" in output and "Neuromancer" not in output
+
+
+def test_main_dispatches_find_year_command(monkeypatch):
+    called = []
+
+    def fake_handle_search_year():
+        called.append(True)
+
+    monkeypatch.setattr(book_app, "handle_search_year", fake_handle_search_year)
+    monkeypatch.setattr(sys, "argv", ["book_app.py", "find-year"])
+
+    book_app.main()
+
+    assert called == [True]
+
+
 def test_show_help_includes_unread_command(capsys):
     book_app.show_help()
 
     output = capsys.readouterr().out
     assert "unread   - Show only books not marked as read" in output
+    assert "find-year - Find books by publication year range" in output

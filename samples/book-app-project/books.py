@@ -113,3 +113,17 @@ class BookCollection:
         """Find all books by a given author."""
         query = author.lower()
         return [b for b in self.books if b is not None and query in b.author.lower()]
+
+    def find_by_year_range(self, start_year: int, end_year: int) -> List[Book]:
+        """Find all books published within an inclusive year range."""
+        if not isinstance(start_year, int) or isinstance(start_year, bool) or start_year < 0:
+            raise ValueError("start_year must be a non-negative integer")
+        if not isinstance(end_year, int) or isinstance(end_year, bool) or end_year < 0:
+            raise ValueError("end_year must be a non-negative integer")
+
+        lower_year, upper_year = sorted((start_year, end_year))
+        return [
+            book
+            for book in self.books
+            if book is not None and lower_year <= book.year <= upper_year
+        ]

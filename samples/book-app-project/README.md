@@ -12,6 +12,7 @@ It can add, remove, and list books. Also mark them as read or show unread books.
 * Reads books from a JSON file (our database)
 * Input checking is weak in some areas
 * Some tests exist but probably not enough
+* Search books by year range
 
 ---
 
@@ -32,6 +33,7 @@ python book_app.py list
 python book_app.py unread
 python book_app.py add
 python book_app.py find
+python book_app.py find-year
 python book_app.py remove
 python book_app.py help
 ```

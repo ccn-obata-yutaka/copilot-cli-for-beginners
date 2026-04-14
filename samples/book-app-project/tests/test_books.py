@@ -230,6 +230,57 @@ def test_find_by_author_empty_collection_returns_empty_list(collection):
     assert collection.find_by_author("Frank Herbert") == []
 
 
+def test_find_by_year_range_matches_inclusive_bounds(collection):
+    collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
+    collection.add_book("Dune", "Frank Herbert", 1965)
+    collection.add_book("Neuromancer", "William Gibson", 1984)
+
+    result = collection.find_by_year_range(1937, 1965)
+
+    assert [book.title for book in result] == ["The Hobbit", "Dune"]
+
+
+def test_find_by_year_range_accepts_reversed_bounds(collection):
+    collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
+    collection.add_book("Dune", "Frank Herbert", 1965)
+    collection.add_book("Neuromancer", "William Gibson", 1984)
+
+    result = collection.find_by_year_range(1965, 1937)
+
+    assert [book.title for book in result] == ["The Hobbit", "Dune"]
+
+
+def test_find_by_year_range_returns_empty_list_when_no_matches(collection):
+    collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    result = collection.find_by_year_range(2000, 2010)
+
+    assert result == []
+
+
+def test_find_by_year_range_returns_empty_list_for_empty_collection(collection):
+    assert collection.find_by_year_range(1900, 2000) == []
+
+
+@pytest.mark.parametrize(
+    "start_year, end_year",
+    [
+        (-1, 2000),
+        (2000, -1),
+        (True, 2000),
+        (2000, True),
+        ("2000", 2010),
+        (2000, 2010.5),
+        (None, 2010),
+        (2010, None),
+    ],
+)
+def test_find_by_year_range_rejects_invalid_input(collection, start_year, end_year):
+    with pytest.raises(ValueError):
+        collection.find_by_year_range(start_year, end_year)
+
+
 def test_remove_book(collection):
     collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
 
