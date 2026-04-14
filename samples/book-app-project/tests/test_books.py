@@ -67,6 +67,7 @@ def test_load_books_ignores_null_and_invalid_entries(tmp_path, monkeypatch):
                 {"title": "The Hobbit", "author": "J.R.R. Tolkien", "year": 1937, "read": False},
                 None,
                 {"title": "Broken Book"},
+                {"title": "Bad Read", "author": "Someone", "year": 2000, "read": "yes"},
             ]
         )
     )
@@ -98,6 +99,25 @@ def test_add_book(collection):
     assert book.author == "George Orwell"
     assert book.year == 1949
     assert book.read is False
+
+
+@pytest.mark.parametrize(
+    "title, author, year",
+    [
+        ("", "George Orwell", 1949),
+        ("   ", "George Orwell", 1949),
+        ("1984", "", 1949),
+        ("1984", "   ", 1949),
+        ("1984", "George Orwell", -1),
+        ("1984", "George Orwell", True),
+        ("1984", "George Orwell", False),
+        ("1984", "George Orwell", "1949"),
+        ("1984", "George Orwell", 1949.0),
+    ],
+)
+def test_add_book_rejects_invalid_input(collection, title, author, year):
+    with pytest.raises(ValueError):
+        collection.add_book(title, author, year)
 
 
 @pytest.mark.parametrize("query", ["Dune", "DUNE", "dUnE"])

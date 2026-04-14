@@ -25,7 +25,21 @@ class BookCollection:
         with Path(DATA_FILE).open(mode, encoding="utf-8") as file:
             yield file
 
-    def load_books(self):
+    def _validate_book_data(
+        self, title: object, author: object, year: object, read: object = False
+    ) -> tuple[str, str, int, bool]:
+        if not isinstance(title, str) or not title.strip():
+            raise ValueError("title must be a non-empty string")
+        if not isinstance(author, str) or not author.strip():
+            raise ValueError("author must be a non-empty string")
+        if not isinstance(year, int) or isinstance(year, bool) or year < 0:
+            raise ValueError("year must be a non-negative integer")
+        if not isinstance(read, bool):
+            raise ValueError("read must be a boolean")
+
+        return title.strip(), author.strip(), year, read
+
+    def load_books(self) -> None:
         """Load books from the JSON file if it exists."""
         try:
             with self._open_data_file("r") as f:
@@ -37,21 +51,29 @@ class BookCollection:
             print("Warning: data.json is corrupted. Starting with empty collection.")
             self.books = []
 
-    def _load_book_entry(self, raw_book) -> Optional[Book]:
+    def _load_book_entry(self, raw_book: object) -> Optional[Book]:
         if not isinstance(raw_book, dict):
             return None
 
         try:
-            return Book(**raw_book)
-        except TypeError:
+            title, author, year, read = self._validate_book_data(
+                raw_book["title"],
+                raw_book["author"],
+                raw_book["year"],
+                raw_book.get("read", False),
+            )
+        except (KeyError, ValueError):
             return None
 
-    def save_books(self):
+        return Book(title=title, author=author, year=year, read=read)
+
+    def save_books(self) -> None:
         """Save the current book collection to JSON."""
         with self._open_data_file("w") as f:
             json.dump([asdict(b) for b in self.books], f, indent=2)
 
     def add_book(self, title: str, author: str, year: int) -> Book:
+        title, author, year, _ = self._validate_book_data(title, author, year)
         book = Book(title=title, author=author, year=year)
         self.books.append(book)
         self.save_books()
