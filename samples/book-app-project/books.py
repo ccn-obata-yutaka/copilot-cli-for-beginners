@@ -89,4 +89,5 @@ class BookCollection:
 
     def find_by_author(self, author: str) -> List[Book]:
         """Find all books by a given author."""
-        return [b for b in self.books if b is not None and b.author.lower() == author.lower()]
+        query = author.lower()
+        return [b for b in self.books if b is not None and query in b.author.lower()]

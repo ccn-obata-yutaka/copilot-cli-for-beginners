@@ -178,19 +178,32 @@ def test_mark_book_as_read_invalid(collection):
     assert result is False
 
 
-@pytest.mark.parametrize("query", ["Frank Herbert", "frank herbert", "FRANK HERBERT"])
-def test_find_by_author_is_case_insensitive(collection, query):
+def test_find_by_author_matches_partial_name(collection):
     collection.add_book("Dune", "Frank Herbert", 1965)
     collection.add_book("Children of Dune", "Frank Herbert", 1976)
     collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
+
+    result = collection.find_by_author("Herbert")
+
+    assert [book.title for book in result] == ["Dune", "Children of Dune"]
+
+
+@pytest.mark.parametrize("query", ["Frank Herbert", "frank herbert", "FRANK HERBERT", "frAnK hErBeRt"])
+def test_find_by_author_matches_case_variations(collection, query):
+    collection.add_book("Dune", "Frank Herbert", 1965)
+    collection.add_book("Children of Dune", "Frank Herbert", 1976)
 
     result = collection.find_by_author(query)
 
     assert [book.title for book in result] == ["Dune", "Children of Dune"]
 
 
-def test_find_by_author_missing_returns_empty_list(collection):
-    assert collection.find_by_author("Unknown Author") == []
+def test_find_by_author_returns_empty_list_when_no_matches(collection):
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    result = collection.find_by_author("Asimov")
+
+    assert result == []
 
 
 def test_find_by_author_empty_collection_returns_empty_list(collection):
