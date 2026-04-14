@@ -44,7 +44,7 @@ result = subprocess.run(
     check=True,
 )
 staged_files = [line.strip() for line in result.stdout.splitlines() if line.strip().endswith(".py")]
-pattern = re.compile(r"\.\./|\.\.\\\\")
+pattern = re.compile(r"\.\./|\.\.\\")
 suspicious = []
 
 for file_name in staged_files:
